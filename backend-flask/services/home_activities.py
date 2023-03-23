@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 
 class HomeActivities:
-  def run(logger : logging):
+  def run(logger : logging, cognito_user_id: str=None):
     now = datetime.now(timezone.utc).astimezone()
     logger.info("HomeActivities")
     results = [{
@@ -44,4 +44,15 @@ class HomeActivities:
       'replies': []
     }
     ]
+    if cognito_user_id is not None:
+      extra_crud = {
+        'uuid': '248959df-3079-4947-b847-9e0892d1bab4',
+        'handle':  'Lore',
+        'message': 'My dear brother, it the humans that are the problem',
+        'created_at': (now - timedelta(hours=1)).isoformat(),
+        'expires_at': (now + timedelta(hours=12)).isoformat(),
+        'likes': 1042,
+        'replies': []
+      }
+      results.insert(0, extra_crud)
     return results
