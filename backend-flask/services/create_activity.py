@@ -10,19 +10,19 @@ class CreateActivity:
     now = datetime.now(timezone.utc).astimezone()
 
     if (ttl == '30-days'):
-      ttl_offset = timedelta(days=30) 
+      ttl_offset = timedelta(days=30)
     elif (ttl == '7-days'):
-      ttl_offset = timedelta(days=7) 
+      ttl_offset = timedelta(days=7)
     elif (ttl == '3-days'):
-      ttl_offset = timedelta(days=3) 
+      ttl_offset = timedelta(days=3)
     elif (ttl == '1-day'):
-      ttl_offset = timedelta(days=1) 
+      ttl_offset = timedelta(days=1)
     elif (ttl == '12-hours'):
-      ttl_offset = timedelta(hours=12) 
+      ttl_offset = timedelta(hours=12)
     elif (ttl == '3-hours'):
-      ttl_offset = timedelta(hours=3) 
+      ttl_offset = timedelta(hours=3)
     elif (ttl == '1-hour'):
-      ttl_offset = timedelta(hours=1) 
+      ttl_offset = timedelta(hours=1)
     else:
       model['errors'] = ['ttl_blank']
 
@@ -30,22 +30,41 @@ class CreateActivity:
       model['errors'] = ['user_handle_blank']
 
     if message == None or len(message) < 1:
-      model['errors'] = ['message_blank'] 
+      model['errors'] = ['message_blank']
     elif len(message) > 280:
-      model['errors'] = ['message_exceed_max_chars'] 
+      model['errors'] = ['message_exceed_max_chars']
 
     if model['errors']:
       model['data'] = {
         'handle':  user_handle,
         'message': message
-      }   
+      }
     else:
+      create_activity()
       model['data'] = {
         'uuid': uuid.uuid4(),
-        'display_name': 'Andrew Brown',
+        'display_name': 'Marek Chomnicki',
         'handle':  user_handle,
         'message': message,
         'created_at': now.isoformat(),
         'expires_at': (now + ttl_offset).isoformat()
       }
     return model
+
+  def create_activity(user_uuid: str, message: str, expires_at: datetime):
+    sql = f"""
+    INSERT INTO (user_uuid, message, expires_at)
+    VALUES ('{user_uuid}', '{message}', '{expires_at}')
+    """
+    try:
+      conn = pool.connection()
+      cur = conn.cursor()
+      cur.execute(sql)
+      conn.commit()
+    except Exception as err:
+      print(err)
+      conn.rollback()
+    finally:
+      if conn is not None:
+        cur.close()
+        conn.close()
